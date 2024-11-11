@@ -19,8 +19,13 @@ class FolderSynch:
         self.log = self.get_logger()
         self.files_hash = {}
     
-    
+
     def get_logger(self):
+        """Initializes logger
+
+        Returns:
+            logger
+        """
         formatter = logging.Formatter("%(asctime)s — %(levelname)s — %(message)s")
         
         console_handler = logging.StreamHandler(sys.stdout)
@@ -40,6 +45,8 @@ class FolderSynch:
         return logger
     
     def synch(self):
+        """Handles folder synch
+        """
         source = self.get_content(self.source_path)
         replica = self.get_content(self.replica_path)
         for file in source:
@@ -64,6 +71,14 @@ class FolderSynch:
     
     
     def get_content(self, path):
+        """Gets files recursively for input path
+
+        Args:
+            path (str): Path to folder
+
+        Returns:
+            list: List of file names in the path
+        """
         file_list = []
         for root, folders, files in os.walk(path):
             relative_root = os.path.relpath(root, path)
@@ -76,6 +91,12 @@ class FolderSynch:
 
 
     def copy_file(self, source_path, replica_path):
+        """Handles folder creation and file copying
+
+        Args:
+            source_path (str): Origin file full name
+            replica_path (str): Destination file full name
+        """
         if os.path.isdir(source_path):
             os.makedirs(replica_path)
             self.log.info(f"Created folder: {replica_path}")
@@ -86,6 +107,11 @@ class FolderSynch:
         
         
     def remove_file(self, path):
+        """Removes files and folders recursively
+
+        Args:
+            path (str): File/Folder full name
+        """
         if os.path.isdir(path):
             shutil.rmtree(path)
             self.log.info(f"Removed folder: {path}")
@@ -96,6 +122,15 @@ class FolderSynch:
         
         
     def compare_hash(self, source_path, replica_path):
+        """Compares two files Hash code
+
+        Args:
+            source_path (str): Origin file full name
+            replica_path (str): Destination file full name
+
+        Returns:
+            bool: true if hash codes are equal, false otherwise
+        """
         if replica_path not in self.files_hash:
             self.files_hash[replica_path] = self.get_hash(replica_path)
 
@@ -103,26 +138,33 @@ class FolderSynch:
         
         
     def get_hash(self, path):
+        """Generates hash code for given file
+
+        Args:
+            path (str): File full name
+
+        Returns:
+            str: file hash code
+        """
         with open(path, "rb") as file:
             digest = hashlib.file_digest(file, "sha256")
         
         return digest.hexdigest()
 
 
-    def start_scheduler(self):   
+    def start_scheduler(self):
         threading.Timer(self.synch_interval * 60, self.synch).start()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Synchronize folders")
     parser.add_argument("source_path", help="Source folder path")
     parser.add_argument("replica_path", help="Replica folder path")
-    parser.add_argument("synch_interval", type=int, help="Sync interval in minutes")
+    parser.add_argument("synch_interval", type=int, help="Synch interval in minutes")
     parser.add_argument("log_path", help="Log folder path")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    #FIXME add comments
     args = parse_args()
     folder_synch = FolderSynch(args.source_path, args.replica_path, args.synch_interval, args.log_path)
     folder_synch.synch()
