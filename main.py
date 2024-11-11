@@ -30,8 +30,8 @@ class FolderSynch:
         
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(formatter)
-        
-        file_handler = TimedRotatingFileHandler(self.log_path + "synch.log", when='midnight')
+
+        file_handler = TimedRotatingFileHandler(self.log_path + "/synch.log", when='midnight')
         file_handler.setFormatter(formatter)
         
         logger = logging.getLogger()
