@@ -6,6 +6,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import sys
 import threading
+import argparse
 
 
 class FolderSynch:
@@ -77,21 +78,21 @@ class FolderSynch:
     def copy_file(self, source_path, replica_path):
         if os.path.isdir(source_path):
             os.makedirs(replica_path)
-            self.log.info("Created folder: " + replica_path)
+            self.log.info(f"Created folder: {replica_path}")
             return
         
         shutil.copy2(source_path, replica_path)
-        self.log.info("Copied file: " + replica_path)
+        self.log.info(f"Copied file: {replica_path}")
         
         
     def remove_file(self, path):
         if os.path.isdir(path):
             shutil.rmtree(path)
-            self.log.info("Removed folder: " + path)
+            self.log.info(f"Removed folder: {path}")
             return
 
         os.remove(path)
-        self.log.info("Removed file: " + path)
+        self.log.info(f"Removed file: {path}")
         
         
     def compare_hash(self, source_path, replica_path):
@@ -111,10 +112,18 @@ class FolderSynch:
     def start_scheduler(self):   
         threading.Timer(self.synch_interval * 60, self.synch).start()
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Synchronize folders")
+    parser.add_argument("source_path", help="Source folder path")
+    parser.add_argument("replica_path", help="Replica folder path")
+    parser.add_argument("synch_interval", type=int, help="Sync interval in minutes")
+    parser.add_argument("log_path", help="Log folder path")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    #FIXME add help
-    #FIXME add input args
     #FIXME add comments
-    folder_synch = FolderSynch("/home/skillflame/Documents/Folder_synch/Source", "/home/skillflame/Documents/Folder_synch/Replica", 1, "/home/skillflame/Documents/Folder_synch/Log/")
+    args = parse_args()
+    folder_synch = FolderSynch(args.source_path, args.replica_path, args.synch_interval, args.log_path)
     folder_synch.synch()
     
